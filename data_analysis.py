@@ -4,6 +4,7 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.feature_selection import chi2
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
+import csv
 
 # Load the dataset
 data = pd.read_csv("train.csv")
@@ -93,3 +94,59 @@ print("\nTop Features by Random Forest Importance:")
 top_rf = feature_analysis[['Feature', 'Random Forest Importance']].sort_values(by='Random Forest Importance', ascending=False).head(top_n)
 for index, row in top_rf.iterrows():
     print(f"{row['Feature']}: {row['Random Forest Importance']:.4f}")
+
+print(feature_analysis.columns)
+
+# Code below used to view rankings of features
+
+# Load the CSV file into a DataFrame
+df = pd.read_csv('feature_analysis_results.csv')
+
+# Convert each metric column to ranks
+# Replace NaN values with a large rank
+df['Mutual Information Rank'] = df['Mutual Information'].rank(ascending=False, method='min').fillna(len(df) + 1)
+df['Point-Biserial Rank'] = df['Point-Biserial Correlation'].rank(ascending=False, method='min').fillna(len(df) + 1)
+df['Chi-Square Rank'] = df['Chi-Square Score'].rank(ascending=False, method='min').fillna(len(df) + 1)
+df['Forest Importance Rank'] = df['Random Forest Importance'].rank(ascending=False, method='min').fillna(len(df) + 1)
+
+# Calculate the sum of ranks
+df['Sum of Ranks'] = (
+    df['Mutual Information Rank'] +
+    df['Point-Biserial Rank'] +
+    df['Chi-Square Rank'] +
+    df['Forest Importance Rank']
+)
+
+# Sort by the sum of ranks
+df_sorted = df.sort_values(by='Sum of Ranks')
+df_sorted_unique = df_sorted.drop_duplicates()
+
+# Print the header
+print("Feature Name, Mutual Information Rank, Point-Biserial Rank, Chi-Square Rank, Forest Importance Rank, Sum of Ranks")
+
+# Print each row in the desired format
+for _, row in df_sorted.iterrows():
+    print(f"{row['Feature']}, {int(row['Mutual Information Rank'])}, {int(row['Point-Biserial Rank'])}, "
+          f"{int(row['Chi-Square Rank'])}, {int(row['Forest Importance Rank'])}, {int(row['Sum of Ranks'])}")
+    
+# Resulting bottom 23 results, stopping where the cross significance is 9
+# diag_2_427
+# glimepiride_No
+# glipizide-metformin_No
+# repaglinide_No
+# payer_code_HM
+# troglitazone_No
+
+# below have a Point-Biserial Correlation of below 0.05
+
+# tolbutamide_No
+# nateglinide_No
+# miglitol_No
+# acarbose_No
+# citoglipton_No
+# metformin-pioglitazone_No
+# tolazamide_No
+# chlorpropamide_No
+# examide_No
+# metformin-rosiglitazone_No
+# acetohexamide_No
