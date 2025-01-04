@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -158,3 +159,49 @@ feature_importance_df = pd.DataFrame({
 y_pred_proba = rf_clf.predict_proba(X_test)[:, 1]
 roc_auc = roc_auc_score(y_test, y_pred_proba)
 print("ROC-AUC Score:", roc_auc)
+
+
+
+# Implementing grid search
+
+# Define the parameter grid for RandomForestClassifier
+param_grid_rf = {
+    'n_estimators': [100, 200, 500],  # Number of trees
+    'max_depth': [None, 10, 20],      # Maximum depth of trees
+    'min_samples_split': [2, 5, 10],  # Minimum samples required to split a node
+    'min_samples_leaf': [1, 2, 4],    # Minimum samples at a leaf node
+    'class_weight': ['balanced', None]  # Handle class imbalance
+}
+
+# Initialize the Random Forest classifier
+rf_clf = RandomForestClassifier(random_state=42, n_jobs=-1)
+
+# Initialize GridSearchCV
+grid_search_rf = GridSearchCV(
+    estimator=rf_clf,
+    param_grid=param_grid_rf,
+    scoring='roc_auc',  # Use ROC-AUC as the evaluation metric
+    cv=5,               # 5-fold cross-validation
+    n_jobs=-1,          # Use all available processors
+    verbose=2           # Show progress
+)
+
+
+# Fit GridSearchCV to the training data
+grid_search_rf.fit(X_train, y_train)
+
+# Print the best parameters and best score
+print("Best Parameters:", grid_search_rf.best_params_)
+print("Best ROC-AUC Score:", grid_search_rf.best_score_)
+
+# Train the final model with the best parameters
+best_rf_clf = grid_search_rf.best_estimator_
+best_rf_clf.fit(X_train, y_train)
+
+# Evaluate on the test set
+y_pred = best_rf_clf.predict(X_test)
+y_pred_proba = best_rf_clf.predict_proba(X_test)[:, 1]
+
+print("Final Test Accuracy:", accuracy_score(y_test, y_pred))
+print("Final Test Classification Report:\n", classification_report(y_test, y_pred))
+print("Final Test ROC-AUC Score:", roc_auc_score(y_test, y_pred_proba))

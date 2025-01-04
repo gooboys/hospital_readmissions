@@ -1,0 +1,16 @@
+The best results for the tree models are shown below:
+
+Best Parameters: {'class_weight': 'balanced', 'max_depth': 10, 'min_samples_leaf': 4, 'min_samples_split': 2, 'n_estimators': 500}
+Best ROC-AUC Score: 0.6636394759159082
+Final Test Accuracy: 0.6710816777041942
+Final Test Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.26      0.51      0.34       457
+         1.0       0.88      0.70      0.78      2261
+
+    accuracy                           0.67      2718
+   macro avg       0.57      0.61      0.56      2718
+weighted avg       0.77      0.67      0.71      2718
+
+In conclusion a tree model isn't very robust for this problem, I will move on to neural networks
