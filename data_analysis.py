@@ -97,6 +97,11 @@ for index, row in top_rf.iterrows():
 
 print(feature_analysis.columns)
 
+# Count rows where the last column ends with 1 or 0
+num_rows_end_1 = data[data.iloc[:, -1] == 1].shape[0]
+num_rows_end_0 = data[data.iloc[:, -1] == 0].shape[0]
+print(f"Rows ending in 1: {num_rows_end_1}, Rows ending in 0: {num_rows_end_0}")
+
 # Code below used to view rankings of features
 
 # Load the CSV file into a DataFrame

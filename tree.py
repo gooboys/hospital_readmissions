@@ -29,9 +29,33 @@ class ReadmissionDataset(Dataset):
         return self.features[idx], self.target[idx]
     
 # Dataset and DataLoader Initialization
-csv_file_path = "train.csv"  # Replace with the actual path
-target_column = "readmitted"  # Replace with the actual target column name
+csv_file_path = "pruned1.csv"
+target_column = "readmitted"
 
+# Load the CSV file
+data = pd.read_csv(csv_file_path)
+
+# Filter the rows with target value 0 and 1
+data_zeros = data[data[target_column] == 0]
+data_ones = data[data[target_column] == 1]
+
+# Randomly select 2180 samples from rows where target is 0
+data_zeros_sampled = data_zeros.sample(n=2180, random_state=42)
+
+# Combine the sampled zeros with all ones
+balanced_data = pd.concat([data_zeros_sampled, data_ones])
+
+# Shuffle the balanced data
+balanced_data = balanced_data.sample(frac=1, random_state=42).reset_index(drop=True)
+
+# Save the balanced data to a new CSV file
+balanced_csv_file_path = "balanced_pruned1.csv"
+balanced_data.to_csv(balanced_csv_file_path, index=False)
+
+# Use the new balanced CSV file for the dataset
+csv_file_path = balanced_csv_file_path
+
+# Dataset and DataLoader Initialization
 dataset = ReadmissionDataset(csv_file=csv_file_path, target_column=target_column)
 
 # Split indices into train and test sets 80-20 training split because tree model is simple
