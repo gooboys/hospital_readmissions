@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import torch
 from torch.utils.data import Dataset, DataLoader
-from models import BasicClassifier
+from models import BasicClassifier, DeeperClassifier
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -97,7 +97,7 @@ for batch_features, batch_targets in train_loader:
 #         return x
 
 # Declares what the classifier is from the imported classes
-BinaryClassifier = BasicClassifier
+BinaryClassifier = DeeperClassifier
 
 # Set input size based on your dataset
 input_size = 64  # Number of input features
