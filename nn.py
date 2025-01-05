@@ -33,7 +33,7 @@ class ReadmissionDataset(Dataset):
         return self.features[idx], self.target[idx]
 
 # Load data
-csv_file_path = "train.csv"
+csv_file_path = "test.csv"
 target_column = "readmitted"
 data = pd.read_csv(csv_file_path)
 
@@ -72,21 +72,23 @@ train_dataset = ReadmissionDataset(X_train, y_train)
 test_dataset = ReadmissionDataset(X_test, y_test)
 
 # DataLoader initialization
-batch_size = 64
+batch_size = 32
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+feature_count = 64
 
 # Example: Checking shapes from train_loader
 for batch_features, batch_targets in train_loader:
     print("Train Batch Features Shape:", batch_features.shape)
     print("Train Batch Targets Shape:", batch_targets.shape)
+    feature_count = batch_features.shape[1]
     break
 
 # Declares what the classifier is from the imported classes
 BinaryClassifier = DeepestClassifier
 
 # Set input size based on your dataset
-input_size = 64  # Number of input features
+input_size = feature_count  # Number of input features
 model = BinaryClassifier(input_size).to(device)
 
 # Define the loss function and optimizer
