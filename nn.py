@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
 import numpy as np
 # Change which classifier is being imported to change which model is being tested
-from models import BasicClassifier, DeepClassifier, DeeperClassifier
+from models import BasicClassifier, DeepClassifier, DeeperClassifier, DeepWideClassifier
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -83,7 +83,7 @@ for batch_features, batch_targets in train_loader:
     break
 
 # Declares what the classifier is from the imported classes
-BinaryClassifier = DeeperClassifier
+BinaryClassifier = DeepWideClassifier
 
 # Set input size based on your dataset
 input_size = 64  # Number of input features
