@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import torch
 from torch.utils.data import Dataset, DataLoader
+from models import BasicClassifier
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -78,22 +79,25 @@ for batch_features, batch_targets in train_loader:
     print("Train Batch Targets Shape:", batch_targets.shape)
     break
 
-# Define the neural network
-class BinaryClassifier(nn.Module):
-    def __init__(self, input_size):
-        super(BinaryClassifier, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)  # First fully connected layer
-        self.fc2 = nn.Linear(128, 64)         # Second fully connected layer
-        self.fc3 = nn.Linear(64, 1)           # Output layer
-        self.relu = nn.ReLU()                 # Activation function
-        self.dropout = nn.Dropout(0.5)        # Dropout for regularization
+# # Define the neural network
+# class BinaryClassifier(nn.Module):
+#     def __init__(self, input_size):
+#         super(BinaryClassifier, self).__init__()
+#         self.fc1 = nn.Linear(input_size, 128)  # First fully connected layer
+#         self.fc2 = nn.Linear(128, 64)         # Second fully connected layer
+#         self.fc3 = nn.Linear(64, 1)           # Output layer
+#         self.relu = nn.ReLU()                 # Activation function
+#         self.dropout = nn.Dropout(0.5)        # Dropout for regularization
 
-    def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.relu(self.fc2(x))
-        x = self.fc3(x)  # No activation here; we'll use BCEWithLogitsLoss
-        return x
+#     def forward(self, x):
+#         x = self.relu(self.fc1(x))
+#         x = self.dropout(x)
+#         x = self.relu(self.fc2(x))
+#         x = self.fc3(x)  # No activation here; we'll use BCEWithLogitsLoss
+#         return x
+
+# Declares what the classifier is from the imported classes
+BinaryClassifier = BasicClassifier
 
 # Set input size based on your dataset
 input_size = 64  # Number of input features
