@@ -121,6 +121,61 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=10):
         # Print epoch loss
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(train_loader):.4f}")
 
+# Training the model with Early Stopping
+def train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=50, patience=5):
+    best_loss = float('inf')  # Initialize best loss as infinity
+    patience_counter = 0      # Counter for early stopping
+    best_model_state = None   # To store the best model's state
+
+    for epoch in range(num_epochs):
+        # Training phase
+        model.train()
+        running_loss = 0.0
+        for features, targets in train_loader:
+            features, targets = features.to(device), targets.to(device)
+            optimizer.zero_grad()  # Clear previous gradients
+            outputs = model(features).squeeze()  # Forward pass
+            loss = criterion(outputs, targets)  # Compute loss
+            loss.backward()  # Backpropagation
+            optimizer.step()  # Update weights
+
+            running_loss += loss.item()
+
+        # Compute training loss
+        train_loss = running_loss / len(train_loader)
+
+        # Validation phase
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for features, targets in test_loader:
+                features, targets = features.to(device), targets.to(device)
+                outputs = model(features).squeeze()
+                loss = criterion(outputs, targets)  # Compute loss
+                val_loss += loss.item()
+
+        val_loss /= len(test_loader)
+
+        print(f"Epoch [{epoch+1}/{num_epochs}] - Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
+
+        # Check for improvement in validation loss
+        if val_loss < best_loss:
+            best_loss = val_loss
+            patience_counter = 0  # Reset patience counter
+            best_model_state = model.state_dict()  # Save the best model's state
+        else:
+            patience_counter += 1
+            print(f"Patience counter: {patience_counter}/{patience}")
+
+            # Early stopping
+            if patience_counter >= patience:
+                print("Early stopping triggered!")
+                break
+
+    # Load the best model's state
+    if best_model_state:
+        model.load_state_dict(best_model_state)
+
 # Evaluate the model
 def evaluate_model(model, test_loader):
     model.eval()  # Set model to evaluation mode
@@ -140,7 +195,13 @@ def evaluate_model(model, test_loader):
     print(classification_report(y_true, y_pred))
     print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
 
-# Train and evaluate
-num_epochs = 10
-train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
+# # Train and evaluate
+# num_epochs = 10
+# train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
+# evaluate_model(model, test_loader)
+
+# Train with Early Stopping and evaluate
+num_epochs = 50
+patience = 5
+train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
 evaluate_model(model, test_loader)
