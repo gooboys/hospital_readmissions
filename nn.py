@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
 import numpy as np
 # Change which classifier is being imported to change which model is being tested
-from models import DeepClassifier
+from models import BasicClassifier, DeepClassifier, DeeperClassifier
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -83,7 +83,7 @@ for batch_features, batch_targets in train_loader:
     break
 
 # Declares what the classifier is from the imported classes
-BinaryClassifier = DeepClassifier
+BinaryClassifier = DeeperClassifier
 
 # Set input size based on your dataset
 input_size = 64  # Number of input features
@@ -264,5 +264,5 @@ def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
 
 num_epochs = 50
 patience = 5
-runs = 3
+runs = 10
 monteCarlo(runs, model, criterion, optimizer)

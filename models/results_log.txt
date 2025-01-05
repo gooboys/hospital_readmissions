@@ -1,0 +1,22 @@
+These are the results for models via monte-carlo cross-validation (10 runs)
+
+Basic Classifier:
+0.0: {'precision': 0.6266519654464907, 'recall': 0.620803649150352, 'f1-score': 0.623034145367056, 'support': 1150.7}
+1.0: {'precision': 0.6182779807238182, 'recall': 0.6230858877928137, 'f1-score': 0.6199047701423229, 'support': 1131.3}
+macro avg: {'precision': 0.6224649730851545, 'recall': 0.6219447684715828, 'f1-score': 0.6214694577546894, 'support': 2282.0}
+weighted avg: {'precision': 0.6226864197617278, 'recall': 0.6219982471516214, 'f1-score': 0.6216077478385681, 'support': 2282.0}
+accuracy: 0.6219982471516214
+
+Deep Classifier:
+0.0: {'precision': 0.6203924942089835, 'recall': 0.6466585902066281, 'f1-score': 0.6330015742025401, 'support': 1150.7}
+1.0: {'precision': 0.6246776416565878, 'recall': 0.5976373558231252, 'f1-score': 0.6105756038556303, 'support': 1131.3}
+macro avg: {'precision': 0.6225350679327856, 'recall': 0.6221479730148766, 'f1-score': 0.6217885890290852, 'support': 2282.0}
+weighted avg: {'precision': 0.6227552616706089, 'recall': 0.6222173531989482, 'f1-score': 0.6219333262464221, 'support': 2282.0}
+accuracy: 0.6222173531989482
+
+Deeper Classifier:
+0.0: {'precision': 0.6227875348370506, 'recall': 0.6334466352938735, 'f1-score': 0.6264060205739336, 'support': 1150.7}
+1.0: {'precision': 0.6207921725033213, 'recall': 0.6080302319453216, 'f1-score': 0.6127089168226904, 'support': 1131.3}
+macro avg: {'precision': 0.621789853670186, 'recall': 0.6207384336195976, 'f1-score': 0.6195574686983119, 'support': 2282.0}
+weighted avg: {'precision': 0.6221150896662404, 'recall': 0.6203768624014023, 'f1-score': 0.619536740465939, 'support': 2282.0}
+accuracy: 0.6203768624014023
