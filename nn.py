@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import torch
 from torch.utils.data import Dataset, DataLoader
+from collections import defaultdict
+import numpy as np
 # Change which classifier is being imported to change which model is being tested
 from models import DeepClassifier
 
@@ -182,14 +184,85 @@ def evaluate_model(model, test_loader):
     print("Classification Report:")
     print(classification_report(y_true, y_pred))
     print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
+    report = classification_report(y_true, y_pred, output_dict=True)
+    return report
 
 # # Train and evaluate
 # num_epochs = 10
 # train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
 # evaluate_model(model, test_loader)
 
-# Train with Early Stopping and evaluate
+# # Train with Early Stopping and evaluate
+# num_epochs = 50
+# patience = 5
+# train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+# evaluate_model(model, test_loader)
+
+def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
+    reports = []
+    for i in range(runs):
+        # Randomly split the data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=random_state + i)
+
+        # Normalize the features
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        # Create DataLoaders
+        train_dataset = ReadmissionDataset(X_train, y_train)
+        test_dataset = ReadmissionDataset(X_test, y_test)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+        # Initialize a fresh model and optimizer for each run
+        model = BinaryClassifier(X_train.shape[1]).to(device)
+        optimizer = optim.Adam(model.parameters())
+
+        train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+        report = evaluate_model(model, test_loader)
+        reports.append(report)
+    # Aggregate metrics
+    aggregated_metrics = defaultdict(lambda: defaultdict(list))  # For per-class and average metrics
+    scalar_metrics = defaultdict(list)  # For scalar metrics like "accuracy"
+
+    # Gather metrics for each class and overall averages
+    for report in reports:
+        for class_name, metrics in report.items():
+            if isinstance(metrics, dict):  # For dictionary-based metrics (e.g., precision, recall, f1-score)
+                for metric_name, value in metrics.items():
+                    aggregated_metrics[class_name][metric_name].append(value)
+            else:  # For scalar metrics (e.g., "accuracy")
+                scalar_metrics[class_name].append(metrics)
+
+    # Compute means for each metric
+    mean_metrics = {}
+
+    # Compute mean for dictionary-based metrics
+    for class_name, metrics in aggregated_metrics.items():
+        mean_metrics[class_name] = {metric: float(np.mean(values)) for metric, values in metrics.items()}
+
+    # Compute mean for scalar metrics
+    for class_name, values in scalar_metrics.items():
+        mean_metrics[class_name] = float(np.mean(values))
+
+    # Print the aggregated report
+    print("\nAverage Report:")
+    for class_name, metrics in mean_metrics.items():
+        if isinstance(metrics, dict):
+            print(f"{class_name}: {metrics}")
+        else:
+            print(f"{class_name}: {metrics:.4f}")
+
+        print("")
+        print("")
+        print("Average Report:")
+
+        # Print the aggregated report
+        for class_name, metrics in mean_metrics.items():
+            print(f"{class_name}: {metrics}")
+
 num_epochs = 50
 patience = 5
-train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
-evaluate_model(model, test_loader)
+runs = 3
+monteCarlo(runs, model, criterion, optimizer)
