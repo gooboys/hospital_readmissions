@@ -1,11 +1,12 @@
 import pandas as pd
+import shap
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader 
 from collections import defaultdict
 import numpy as np
 # Change which classifier is being imported to change which model is being tested
@@ -195,11 +196,11 @@ def evaluate_model(model, test_loader):
 # train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
 # evaluate_model(model, test_loader)
 
-# # Train with Early Stopping and evaluate
-# num_epochs = 50
-# patience = 5
-# train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
-# evaluate_model(model, test_loader)
+# Train with Early Stopping and evaluate
+num_epochs = 50
+patience = 5
+train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+evaluate_model(model, test_loader)
 
 def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
     reports = []
@@ -265,7 +266,39 @@ def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
         for class_name, metrics in mean_metrics.items():
             print(f"{class_name}: {metrics}")
 
-num_epochs = 50
-patience = 5
-runs = 10
-monteCarlo(runs, model, criterion, optimizer)
+# CODE BELOW FOR SHAP ANALYSIS
+def model_predict(features):
+    """
+    Takes input features, runs them through the trained model, and returns predictions.
+    This wrapper is required because SHAP expects a callable function for the model.
+    """
+    model.eval()
+    with torch.no_grad():
+        features_tensor = torch.tensor(features, dtype=torch.float32).to(device)
+        logits = model(features_tensor).squeeze().cpu().numpy()
+        return torch.sigmoid(torch.tensor(logits)).numpy()  # Return probabilities
+    
+# Step 2: Select a background dataset for SHAP
+background = X_train[:100]  # Use a small subset of the training data for efficiency
+
+# Step 3: Initialize the SHAP Explainer
+explainer = shap.Explainer(model_predict, background)
+
+# Step 4: Generate SHAP values for the test set
+shap_values = explainer(X_test)
+
+# Step 5: Visualize SHAP results
+# Summary plot (overall feature importance)
+shap.summary_plot(shap_values, X_test)
+
+# Dependence plot for a specific feature
+shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
+
+# # Force plot for an individual prediction
+# shap.force_plot(explainer.expected_value, shap_values[0], X_test[0])
+
+
+# num_epochs = 50
+# patience = 5
+# runs = 10
+# monteCarlo(runs, model, criterion, optimizer)
