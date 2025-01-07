@@ -205,17 +205,6 @@ def evaluate_model(model, test_loader):
         print("ROC AUC could not be computed (e.g., only one class present in y_true).")
     return report, roc_auc
 
-# # Train and evaluate
-# num_epochs = 10
-# train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
-# evaluate_model(model, test_loader)
-
-# Train with Early Stopping and evaluate
-num_epochs = 50
-patience = 5
-train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
-evaluate_model(model, test_loader)
-
 def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
     reports = []
     roc_scores = 0
@@ -284,7 +273,7 @@ def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
     avg_roc = roc_scores/runs
     print(f"Average ROC AUC: {avg_roc:.4f}")
 
-# CODE BELOW FOR SHAP ANALYSIS
+
 def model_predict(features):
     """
     Takes input features, runs them through the trained model, and returns predictions.
@@ -295,49 +284,68 @@ def model_predict(features):
         features_tensor = torch.tensor(features, dtype=torch.float32).to(device)
         logits = model(features_tensor).squeeze().cpu().numpy()
         return torch.sigmoid(torch.tensor(logits)).numpy()  # Return probabilities
-    
-# Step 2: Select a background dataset for SHAP
-background = X_train[:100]  # Use a small subset of the training data for efficiency
-
-# Step 3: Initialize the SHAP Explainer
-explainer = shap.Explainer(model_predict, background)
-
-# Step 4: Generate SHAP values for the test set
-shap_values = explainer(X_test)
-
-# Compute mean absolute SHAP values for each feature
-shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
-
-# Create a DataFrame for easier visualization
-feature_importance = pd.DataFrame({
-    'Feature': feature_names,  # Ensure feature_names is correctly defined
-    'Mean SHAP Value': shap_mean
-}).sort_values(by='Mean SHAP Value', ascending=False)
-
-# Adjust pandas display options
-pd.set_option('display.max_rows', None)  # Show all rows
-pd.set_option('display.max_columns', None)  # Show all columns
-pd.set_option('display.width', None)  # Do not truncate line width
-
-# Print the entire DataFrame
-print(feature_importance)
-
-# Reset options to default after printing (optional)
-pd.reset_option('display.max_rows')
-pd.reset_option('display.max_columns')
-pd.reset_option('display.width')
-# Step 5: Visualize SHAP results
-# Summary plot (overall feature importance)
-shap.summary_plot(shap_values, X_test)
-
-# # Dependence plot for a specific feature
-# shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
 
 
 
+
+''''''
 # BELOW CODE FOR MONTE CARLO VALIDATION
-
 # num_epochs = 50
 # patience = 5
 # runs = 10
 # monteCarlo(runs, model, criterion, optimizer)
+
+''''''
+# BELOW CODE BASIC TRAIN AND EVAL
+# num_epochs = 10
+# train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
+# evaluate_model(model, test_loader)
+
+''''''
+# BELOW CODE TRAIN AND EVAL EARLY STOPPING
+# num_epochs = 50
+# patience = 5
+# train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+# evaluate_model(model, test_loader)
+
+''''''
+# CODE BELOW FOR SHAP ANALYSIS
+# # Step 1 model_predict function declared
+# # Step 2: Select a background dataset for SHAP
+# background = X_train[:100]  # Use a small subset of the training data for efficiency
+
+# # Step 3: Initialize the SHAP Explainer
+# explainer = shap.Explainer(model_predict, background)
+
+# # Step 4: Generate SHAP values for the test set
+# shap_values = explainer(X_test)
+
+# # Compute mean absolute SHAP values for each feature
+# shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
+
+# # Create a DataFrame for easier visualization
+# feature_importance = pd.DataFrame({
+#     'Feature': feature_names,  # Ensure feature_names is correctly defined
+#     'Mean SHAP Value': shap_mean
+# }).sort_values(by='Mean SHAP Value', ascending=False)
+
+# # Adjust pandas display options
+# pd.set_option('display.max_rows', None)  # Show all rows
+# pd.set_option('display.max_columns', None)  # Show all columns
+# pd.set_option('display.width', None)  # Do not truncate line width
+
+# # Print the entire DataFrame
+# print(feature_importance)
+
+# # Reset options to default after printing (optional)
+# pd.reset_option('display.max_rows')
+# pd.reset_option('display.max_columns')
+# pd.reset_option('display.width')
+# # Step 5: Visualize SHAP results
+# # Summary plot (overall feature importance)
+# shap.summary_plot(shap_values, X_test)
+
+# # Dependence plot for a specific feature
+# shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
+
+''''''
