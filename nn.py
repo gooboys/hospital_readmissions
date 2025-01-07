@@ -36,7 +36,7 @@ class ReadmissionDataset(Dataset):
         return self.features[idx], self.target[idx]
 
 # Load data
-csv_file_path = "zero_to_one.csv"
+csv_file_path = "zero2one_noshapremoved.csv"
 target_column = "readmitted"
 data = pd.read_csv(csv_file_path)
 
