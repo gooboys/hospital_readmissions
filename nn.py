@@ -347,6 +347,16 @@ pd.reset_option('display.width')
 # Summary plot (overall feature importance)
 shap.summary_plot(shap_values, X_test)
 
+# THIS LINE ADDS FEATURES TO A TEXT FILE, USED FOR TESTING SIGNIFICANCE PURPOSES
+# Extract the top 20 features
+output_file = 'top20feat.csv'
+top_20_features = feature_importance.head(20)
+count = 1
+with open(output_file, "a") as file:
+    for feature in top_20_features['Feature']:
+        file.write(feature + "," + str(count) + "\n")
+        count += 1
+
 # # Dependence plot for a specific feature
 # shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
 
