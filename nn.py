@@ -13,6 +13,7 @@ import numpy as np
 # Change which classifier is being imported to change which model is being tested
 from models import BasicClassifier, DeepClassifier, DeeperClassifier, DeepWideClassifier, DeepestClassifier
 from models import DeeperWideClassifier, DeepestWideClassifier, DeepestFunClassifier
+import time
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -66,7 +67,8 @@ y = balanced_data[target_column].values
 feature_names = balanced_data.drop(columns=[target_column]).columns.tolist()
 
 # Split into train and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=random_state)
+rando = int(time.time())
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=rando)
 
 # Normalize the features (standard scaling)
 scaler = StandardScaler()
@@ -210,7 +212,7 @@ def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
     roc_scores = 0
     for i in range(runs):
         # Randomly split the data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=random_state + i)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=rando + i)
 
         # Normalize the features
         scaler = StandardScaler()
@@ -303,47 +305,47 @@ def model_predict(features):
 
 ''''''
 # BELOW CODE TRAIN AND EVAL EARLY STOPPING
-# num_epochs = 50
-# patience = 5
-# train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
-# evaluate_model(model, test_loader)
+num_epochs = 50
+patience = 5
+train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+evaluate_model(model, test_loader)
 
 ''''''
-# CODE BELOW FOR SHAP ANALYSIS
-# # Step 1 model_predict function declared
-# # Step 2: Select a background dataset for SHAP
-# background = X_train[:100]  # Use a small subset of the training data for efficiency
+# CODE BELOW FOR SHAP ANALYSIS, YOU NEED TO TRAIN MODEL TO DO THIS
+# Step 1 model_predict function declared
+# Step 2: Select a background dataset for SHAP
+background = X_train[:100]  # Use a small subset of the training data for efficiency
 
-# # Step 3: Initialize the SHAP Explainer
-# explainer = shap.Explainer(model_predict, background)
+# Step 3: Initialize the SHAP Explainer
+explainer = shap.Explainer(model_predict, background)
 
-# # Step 4: Generate SHAP values for the test set
-# shap_values = explainer(X_test)
+# Step 4: Generate SHAP values for the test set
+shap_values = explainer(X_test)
 
-# # Compute mean absolute SHAP values for each feature
-# shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
+# Compute mean absolute SHAP values for each feature
+shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
 
-# # Create a DataFrame for easier visualization
-# feature_importance = pd.DataFrame({
-#     'Feature': feature_names,  # Ensure feature_names is correctly defined
-#     'Mean SHAP Value': shap_mean
-# }).sort_values(by='Mean SHAP Value', ascending=False)
+# Create a DataFrame for easier visualization
+feature_importance = pd.DataFrame({
+    'Feature': feature_names,  # Ensure feature_names is correctly defined
+    'Mean SHAP Value': shap_mean
+}).sort_values(by='Mean SHAP Value', ascending=False)
 
-# # Adjust pandas display options
-# pd.set_option('display.max_rows', None)  # Show all rows
-# pd.set_option('display.max_columns', None)  # Show all columns
-# pd.set_option('display.width', None)  # Do not truncate line width
+# Adjust pandas display options
+pd.set_option('display.max_rows', None)  # Show all rows
+pd.set_option('display.max_columns', None)  # Show all columns
+pd.set_option('display.width', None)  # Do not truncate line width
 
-# # Print the entire DataFrame
-# print(feature_importance)
+# Print the entire DataFrame
+print(feature_importance)
 
-# # Reset options to default after printing (optional)
-# pd.reset_option('display.max_rows')
-# pd.reset_option('display.max_columns')
-# pd.reset_option('display.width')
-# # Step 5: Visualize SHAP results
-# # Summary plot (overall feature importance)
-# shap.summary_plot(shap_values, X_test)
+# Reset options to default after printing (optional)
+pd.reset_option('display.max_rows')
+pd.reset_option('display.max_columns')
+pd.reset_option('display.width')
+# Step 5: Visualize SHAP results
+# Summary plot (overall feature importance)
+shap.summary_plot(shap_values, X_test)
 
 # # Dependence plot for a specific feature
 # shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
