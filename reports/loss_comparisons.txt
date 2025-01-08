@@ -1,0 +1,24 @@
+sigmoid activation + binary cross entropy (50 runs):
+0.0: {'precision': 0.622406384971743, 'recall': 0.6328428779375318, 'f1-score': 0.6266914148096946, 'support': 1136.74}
+1.0: {'precision': 0.6297002480123337, 'recall': 0.6179541743444189, 'f1-score': 0.6228567407846579, 'support': 1145.26}
+macro avg: {'precision': 0.6260533164920384, 'recall': 0.6253985261409754, 'f1-score': 0.6247740777971762, 'support': 2282.0}
+weighted avg: {'precision': 0.6262012924558856, 'recall': 0.625284837861525, 'f1-score': 0.6247908269683592, 'support': 2282.0}
+accuracy: 0.625284837861525
+Average ROC AUC: 0.6741
+
+
+sigmoid focal loss (50 runs):
+0.0: {'precision': 0.5176284278510809, 'recall': 0.9757089416472015, 'f1-score': 0.6762932423964699, 'support': 1141.26}
+1.0: {'precision': 0.7904936729833506, 'recall': 0.09013550031478564, 'f1-score': 0.16083991981278215, 'support': 1140.74}
+macro avg: {'precision': 0.6540610504172156, 'recall': 0.5329222209809935, 'f1-score': 0.41856658110462613, 'support': 2282.0}
+weighted avg: {'precision': 0.6542548838230767, 'recall': 0.5329360210341807, 'f1-score': 0.418612302907027, 'support': 2282.0}
+accuracy: 0.5329360210341807
+Average ROC AUC: 0.6728
+
+Label Smoothing loss (50 runs)
+0.0: {'precision': 0.6212981291591828, 'recall': 0.630657586621668, 'f1-score': 0.6253725739574315, 'support': 1135.38}
+1.0: {'precision': 0.6287463537654303, 'recall': 0.6185598268298371, 'f1-score': 0.6230096637761325, 'support': 1146.62}
+macro avg: {'precision': 0.6250222414623066, 'recall': 0.6246087067257525, 'f1-score': 0.6241911188667821, 'support': 2282.0}
+weighted avg: {'precision': 0.6252095357951668, 'recall': 0.624592462751972, 'f1-score': 0.6242765422917205, 'support': 2282.0}
+accuracy: 0.624592462751972
+Average ROC AUC: 0.6723

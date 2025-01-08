@@ -10,10 +10,12 @@ import torch
 from torch.utils.data import Dataset, DataLoader 
 from collections import defaultdict
 import numpy as np
+from torchvision.ops import sigmoid_focal_loss
+import time
 # Change which classifier is being imported to change which model is being tested
 from models import BasicClassifier, DeepClassifier, DeeperClassifier, DeepWideClassifier, DeepestClassifier
 from models import DeeperWideClassifier, DeepestWideClassifier, DeepestFunClassifier
-import time
+
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -100,7 +102,17 @@ input_size = feature_count  # Number of input features
 model = BinaryClassifier(input_size).to(device)
 
 # Define the loss function and optimizer
-criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation + binary cross-entropy
+
+def label_smoothing_bce(logits, targets, smoothing=0.1):
+    targets = targets * (1 - smoothing) + 0.5 * smoothing
+    return nn.BCEWithLogitsLoss()(logits, targets)
+
+# NORMAL LOSS
+# criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation + binary cross-entropy
+# LOSS FOR NOISY DATASET
+# criterion = lambda logits, labels: torch.mean(sigmoid_focal_loss(logits, labels, alpha=0.25, gamma=2.0))
+# LOSS  FOR LABEL SMOOTHING, STILL BCE, FOCUSES MORE ON BOUNDARY
+# criterion = lambda logits, targets: label_smoothing_bce(logits, targets, smoothing=0.1)
 optimizer = optim.Adam(model.parameters(), lr=0.001)  # Adam optimizer with learning rate 0.001
 
 # Training the model
@@ -292,10 +304,10 @@ def model_predict(features):
 
 ''''''
 # BELOW CODE FOR MONTE CARLO VALIDATION
-# num_epochs = 50
-# patience = 5
-# runs = 10
-# monteCarlo(runs, model, criterion, optimizer)
+num_epochs = 50
+patience = 5
+runs = 50
+monteCarlo(runs, model, criterion, optimizer)
 
 ''''''
 # BELOW CODE BASIC TRAIN AND EVAL
@@ -305,62 +317,62 @@ def model_predict(features):
 
 ''''''
 # BELOW CODE TRAIN AND EVAL EARLY STOPPING
-num_epochs = 50
-patience = 5
-train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
-evaluate_model(model, test_loader)
+# num_epochs = 50
+# patience = 5
+# train_model_with_early_stopping(model, train_loader, test_loader, criterion, optimizer, num_epochs=num_epochs, patience=patience)
+# evaluate_model(model, test_loader)
 
 ''''''
 # CODE BELOW FOR SHAP ANALYSIS, YOU NEED TO TRAIN MODEL TO DO THIS
 # Step 1 model_predict function declared
 # Step 2: Select a background dataset for SHAP
-background = X_train[:100]  # Use a small subset of the training data for efficiency
+# background = X_train[:100]  # Use a small subset of the training data for efficiency
 
-# Step 3: Initialize the SHAP Explainer
-explainer = shap.Explainer(model_predict, background)
+# # Step 3: Initialize the SHAP Explainer
+# explainer = shap.Explainer(model_predict, background)
 
-# Step 4: Generate SHAP values for the test set
-shap_values = explainer(X_test)
+# # Step 4: Generate SHAP values for the test set
+# shap_values = explainer(X_test)
 
-# Compute mean absolute SHAP values for each feature
-shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
+# # Compute mean absolute SHAP values for each feature
+# shap_mean = np.abs(shap_values.values).mean(axis=0)  # Access the .values attribute
 
-# Create a DataFrame for easier visualization
-feature_importance = pd.DataFrame({
-    'Feature': feature_names,  # Ensure feature_names is correctly defined
-    'Mean SHAP Value': shap_mean
-}).sort_values(by='Mean SHAP Value', ascending=False)
+# # Create a DataFrame for easier visualization
+# feature_importance = pd.DataFrame({
+#     'Feature': feature_names,  # Ensure feature_names is correctly defined
+#     'Mean SHAP Value': shap_mean
+# }).sort_values(by='Mean SHAP Value', ascending=False)
 
-# Adjust pandas display options
-pd.set_option('display.max_rows', None)  # Show all rows
-pd.set_option('display.max_columns', None)  # Show all columns
-pd.set_option('display.width', None)  # Do not truncate line width
+# # Adjust pandas display options
+# pd.set_option('display.max_rows', None)  # Show all rows
+# pd.set_option('display.max_columns', None)  # Show all columns
+# pd.set_option('display.width', None)  # Do not truncate line width
 
-# Print the entire DataFrame
-print(feature_importance)
+# # Print the entire DataFrame
+# print(feature_importance)
 
-# Reset options to default after printing (optional)
-pd.reset_option('display.max_rows')
-pd.reset_option('display.max_columns')
-pd.reset_option('display.width')
-# Step 5: Visualize SHAP results
-# Summary plot (overall feature importance)
-shap.summary_plot(shap_values, X_test)
+# # Reset options to default after printing (optional)
+# pd.reset_option('display.max_rows')
+# pd.reset_option('display.max_columns')
+# pd.reset_option('display.width')
+# # Step 5: Visualize SHAP results
+# # Summary plot (overall feature importance)
+# shap.summary_plot(shap_values, X_test)
 
-# THIS LINE ADDS FEATURES TO A TEXT FILE, USED FOR TESTING SIGNIFICANCE PURPOSES
-# Extract the top 20 features
-output_file = 'top20feat.csv'
-top_20_features = feature_importance.head(20)
-count = 1
-with open(output_file, "a") as file:
-    for feature in top_20_features['Feature']:
-        file.write(feature + "," + str(count) + "\n")
-        count += 1
+# # THIS LINE ADDS FEATURES TO A TEXT FILE, USED FOR TESTING SIGNIFICANCE PURPOSES
+# # Extract the top 20 features
+# output_file = 'top20feat.csv'
+# top_20_features = feature_importance.head(20)
+# count = 1
+# with open(output_file, "a") as file:
+#     for feature in top_20_features['Feature']:
+#         file.write(feature + "," + str(count) + "\n")
+#         count += 1
 
-# Dependence plot for a specific features
-# List of features you are investigating dependences for
-dependences = [6,54,16,5,4,8,2,9,7,21,12,3]
-for dependence in dependences:
-    shap.dependence_plot(dependence, shap_values.values, X_test)  # Replace 0 with the desired feature index
+# # Dependence plot for a specific features
+# # List of features you are investigating dependences for
+# dependences = [6,54,16,5,4,8,2,9,7,21,12,3]
+# for dependence in dependences:
+#     shap.dependence_plot(dependence, shap_values.values, X_test)  # Replace 0 with the desired feature index
 
 ''''''
