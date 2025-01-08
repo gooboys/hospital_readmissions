@@ -357,7 +357,10 @@ with open(output_file, "a") as file:
         file.write(feature + "," + str(count) + "\n")
         count += 1
 
-# # Dependence plot for a specific feature
-# shap.dependence_plot(0, shap_values.values, X_test)  # Replace 0 with the desired feature index
+# Dependence plot for a specific features
+# List of features you are investigating dependences for
+dependences = [6,54,16,5,4,8,2,9,7,21,12,3]
+for dependence in dependences:
+    shap.dependence_plot(dependence, shap_values.values, X_test)  # Replace 0 with the desired feature index
 
 ''''''
