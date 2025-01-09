@@ -6,8 +6,8 @@ class DeepClassifier(nn.Module):
         super(DeepClassifier, self).__init__()
         self.fc1 = nn.Linear(input_size, 128)  # First fully connected layer
         self.fc2 = nn.Linear(128, 64)          # Second fully connected layer
-        self.fc3 = nn.Linear(64, 64)           # Third fully connected layer
-        self.fc4 = nn.Linear(64, 1)            # Output layer
+        self.fc3 = nn.Linear(64, 32)           # Third fully connected layer
+        self.fc4 = nn.Linear(32, 1)            # Output layer
         self.relu = nn.ReLU()                 # Activation function
         self.dropout = nn.Dropout(0.5)        # Dropout for regularization
 

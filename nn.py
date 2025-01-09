@@ -23,6 +23,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Set random seed for reproducibility
 random_state = 42
 
+# Declares what the classifier is from the imported classes
+BinaryClassifier = DeepestFunClassifier
+
 # Custom Dataset Class for Neural Networks
 class ReadmissionDataset(Dataset):
     def __init__(self, features, target):
@@ -94,9 +97,6 @@ for batch_features, batch_targets in train_loader:
     feature_count = batch_features.shape[1]
     break
 
-# Declares what the classifier is from the imported classes
-BinaryClassifier = BasicClassifier
-
 # Set input size based on your dataset
 input_size = feature_count  # Number of input features
 model = BinaryClassifier(input_size).to(device)
@@ -108,7 +108,7 @@ def label_smoothing_bce(logits, targets, smoothing=0.1):
     return nn.BCEWithLogitsLoss()(logits, targets)
 
 # NORMAL LOSS
-# criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation + binary cross-entropy
+criterion = nn.BCEWithLogitsLoss()  # Combines sigmoid activation + binary cross-entropy
 # LOSS FOR NOISY DATASET
 # criterion = lambda logits, labels: torch.mean(sigmoid_focal_loss(logits, labels, alpha=0.25, gamma=2.0))
 # LOSS  FOR LABEL SMOOTHING, STILL BCE, FOCUSES MORE ON BOUNDARY
@@ -223,6 +223,7 @@ def monteCarlo(runs, model, criterion, optimizer, num_epochs=50, patience=5):
     reports = []
     roc_scores = 0
     for i in range(runs):
+        print("this is run " + str(i+1))
         # Randomly split the data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=rando + i)
 
@@ -305,9 +306,9 @@ def model_predict(features):
 ''''''
 # BELOW CODE FOR MONTE CARLO VALIDATION
 num_epochs = 50
-patience = 5
+patience = 7
 runs = 50
-monteCarlo(runs, model, criterion, optimizer)
+monteCarlo(runs, model, criterion, optimizer, num_epochs, patience)
 
 ''''''
 # BELOW CODE BASIC TRAIN AND EVAL
