@@ -1,9 +1,12 @@
 import pandas as pd
 from scipy.stats import pointbiserialr
-from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_classif, mutual_info_regression
 from sklearn.feature_selection import chi2
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import csv
 
 # Load the dataset
@@ -155,3 +158,61 @@ for _, row in df_sorted.iterrows():
 # examide_No
 # metformin-rosiglitazone_No
 # acetohexamide_No
+
+
+# Box and whisker plots for the first 8 features
+# Calculate statistics for the first 8 metrics
+boxplot_data = {}
+min_before_outlier = []
+
+for col in data.columns[:8]:  # Iterate over the first 8 columns
+    col_data = data[col].dropna()  # Drop NaN values
+    # Calculate Q1, Q3, and IQR
+    Q1 = data[col].quantile(0.25)
+    Q3 = data[col].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Define the outlier boundaries
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    # Find non-outlier values
+    non_outliers = data[col][(data[col] >= lower_bound) & (data[col] <= upper_bound)]
+    min_before_outlier.append(non_outliers.max())
+    stats = {
+        'min': col_data.min(),
+        'Q1': col_data.quantile(0.25),  # First quartile (25th percentile)
+        'median': col_data.median(),  # Median (50th percentile)
+        'Q3': col_data.quantile(0.75),  # Third quartile (75th percentile)
+        'max': col_data.max(),
+        'outliers': col_data[
+            (col_data < col_data.quantile(0.25) - 1.5 * (col_data.quantile(0.75) - col_data.quantile(0.25))) |
+            (col_data > col_data.quantile(0.75) + 1.5 * (col_data.quantile(0.75) - col_data.quantile(0.25)))
+        ].tolist()  # Detect outliers
+    }
+    
+    boxplot_data[col] = stats
+
+# Convert to DataFrame for easier viewing
+boxplot_df = pd.DataFrame(boxplot_data).T
+boxplot_df.index.name = 'Feature'
+
+# Display the statistics
+print(boxplot_df)
+print(min_before_outlier)
+
+# # Optionally save to CSV
+# boxplot_df.to_csv("boxplot_statistics.csv")
+
+# Plot box-and-whisker plots for the first 8 metrics
+fig, axs = plt.subplots(2, 4, figsize=(20, 10))  # Create a 2x4 grid of subplots
+axs = axs.ravel()  # Flatten the array of subplots
+
+for i, col in enumerate(data.columns[:8]):  # Iterate over the first 8 columns
+    axs[i].boxplot(data[col].dropna())  # Create a box plot for each column, dropping NaN values
+    axs[i].set_title(col)  # Set the title of the subplot to the column name
+    axs[i].set_ylabel('Value')  # Set the Y-axis label
+    axs[i].grid(True)  # Add a grid for better readability
+
+plt.tight_layout()  # Adjust layout to avoid overlap
+plt.show()  # Display the plots
