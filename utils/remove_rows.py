@@ -3,7 +3,7 @@ import pandas as pd
 # This file prunes the data for certain features
 
 # File paths
-input_file_path = "zero2one_noshapremoved.csv"
+input_file_path = "zero_to_one.csv"
 output_file_path = "treeparsed.csv"
 
 # Columns to remove
@@ -13,7 +13,12 @@ columns_to_remove = [
     "glipizide-metformin_No",
     "diag_3_276",
     "troglitazone_No",
-    "glimepiride-pioglitazone_No"
+    "glimepiride-pioglitazone_No",
+    "acetohexamide_No",
+    "examide_No",
+    "citoglipton_No",
+    "metformin-rosiglitazone_No",
+    "metformin-pioglitazone_No"
 ]
 
 # Load the dataset
