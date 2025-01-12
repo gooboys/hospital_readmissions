@@ -13,140 +13,85 @@ from sklearn.model_selection import GridSearchCV
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Custom Dataset Class
-class ReadmissionDataset(Dataset):
-    def __init__(self, csv_file, target_column):
-        # Load data
-        self.data = pd.read_csv(csv_file)
-        self.features = self.data.drop(columns=[target_column])
-        self.target = self.data[target_column]
+data = pd.read_csv("train.csv")
 
-        # Convert data to tensors
-        self.features = torch.tensor(self.features.values, dtype=torch.float32)
-        self.target = torch.tensor(self.target.values, dtype=torch.float32)
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        return self.features[idx], self.target[idx]
-    
-# Dataset and DataLoader Initialization
-csv_file_path = "treeparsed.csv"
 target_column = "readmitted"
 
-# Dataset and DataLoader Initialization
-dataset = ReadmissionDataset(csv_file=csv_file_path, target_column=target_column)
+# Separate features and target
+X = data.drop(columns=[target_column]).values  # Features as a NumPy array
+y = data[target_column].values  # Target as a NumPy array
 
-# Split indices into train and test sets 80-20 training split because tree model is simple
-train_indices, test_indices = train_test_split(
-    range(len(dataset)), test_size=0.2, random_state=42
-)
-
-# Create subsets for training and testing
-train_dataset = Subset(dataset, train_indices)
-test_dataset = Subset(dataset, test_indices)
-
-# Create DataLoaders for training and testing
-batch_size = 64
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-# Example: Checking shapes from train_loader
-for batch_features, batch_targets in train_loader:
-    print("Train Batch Features Shape:", batch_features.shape)
-    print("Train Batch Targets Shape:", batch_targets.shape)
-    break
-
-# Example: Checking shapes from test_loader
-for batch_features, batch_targets in test_loader:
-    print("Test Batch Features Shape:", batch_features.shape)
-    print("Test Batch Targets Shape:", batch_targets.shape)
-    break
-
-# Function to extract features and targets from DataLoader
-def dataloader_to_numpy(dataloader):
-    features, targets = [], []
-    for batch_features, batch_targets in dataloader:
-        features.append(batch_features.numpy())
-        targets.append(batch_targets.numpy())
-    return np.vstack(features), np.hstack(targets)
-
-# Extract train and test data from DataLoaders
-X_train, y_train = dataloader_to_numpy(train_loader)
-X_test, y_test = dataloader_to_numpy(test_loader)
-
+# Split data into train and test sets (80-20 split)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ''''''
 
-# # Train the Random Forest classifier
-# rf_clf = RandomForestClassifier(
-#     n_estimators=100,  # Number of trees
-#     max_depth=None,  # Maximum depth of trees
-#     random_state=42,  # For reproducibility
-#     n_jobs=-1,  # Use all available processors
-#     class_weight="balanced"  # Handle imbalanced datasets
-# )
-# rf_clf.fit(X_train, y_train)
-
-# # Make predictions on the test set
-# y_pred = rf_clf.predict(X_test)
-
-# # Evaluate the model
-# print("Accuracy:", accuracy_score(y_test, y_pred))
-# print("Classification Report:\n", classification_report(y_test, y_pred))
-
-# # Feature Importance
-# importances = rf_clf.feature_importances_
-# feature_names = dataset.data.drop(columns=[target_column]).columns
-# feature_importance_df = pd.DataFrame({
-#     "Feature": feature_names,
-#     "Importance": importances
-# }).sort_values(by="Importance", ascending=False)
-
-# y_pred_proba = rf_clf.predict_proba(X_test)[:, 1]
-# roc_auc = roc_auc_score(y_test, y_pred_proba)
-# print("ROC-AUC Score:", roc_auc)
-
-# pd.set_option('display.max_rows', None)
-# print(feature_importance_df)
-# pd.reset_option('display.max_rows')
-
-''''''
-
-# Train the Gradient Boosting classifier
-gb_clf = GradientBoostingClassifier(
-    n_estimators=100,      # Number of boosting stages
-    learning_rate=0.1,     # Step size shrinkage
-    max_depth=4,           # Maximum depth of each tree
-    random_state=42        # For reproducibility
+# Train the Random Forest classifier
+rf_clf = RandomForestClassifier(
+    n_estimators=100,  # Number of trees
+    max_depth=None,  # Maximum depth of trees
+    random_state=42,  # For reproducibility
+    n_jobs=-1,  # Use all available processors
+    class_weight="balanced"  # Handle imbalanced datasets
 )
-gb_clf.fit(X_train, y_train)
+rf_clf.fit(X_train, y_train)
 
 # Make predictions on the test set
-y_pred = gb_clf.predict(X_test)
-y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+y_pred = rf_clf.predict(X_test)
 
 # Evaluate the model
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
 
 # Feature Importance
-importances = gb_clf.feature_importances_
-feature_names = dataset.data.drop(columns=[target_column]).columns
+importances = rf_clf.feature_importances_
+feature_names = data.drop(columns=[target_column]).columns
 feature_importance_df = pd.DataFrame({
     "Feature": feature_names,
     "Importance": importances
 }).sort_values(by="Importance", ascending=False)
 
-y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+y_pred_proba = rf_clf.predict_proba(X_test)[:, 1]
 roc_auc = roc_auc_score(y_test, y_pred_proba)
 print("ROC-AUC Score:", roc_auc)
 
-# Set maximum rows to display to None (displays all rows)
-pd.set_option('display.max_rows', None)
-# print(feature_importance_df)
-# Optionally, reset the display option after printing
-pd.reset_option('display.max_rows')
+print(feature_importance_df)
+
+''''''
+
+# # Train the Gradient Boosting classifier
+# gb_clf = GradientBoostingClassifier(
+#     n_estimators=100,      # Number of boosting stages
+#     learning_rate=0.1,     # Step size shrinkage
+#     max_depth=4,           # Maximum depth of each tree
+#     random_state=42        # For reproducibility
+# )
+# gb_clf.fit(X_train, y_train)
+
+# # Make predictions on the test set
+# y_pred = gb_clf.predict(X_test)
+# y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+
+# # Evaluate the model
+# print("Accuracy:", accuracy_score(y_test, y_pred))
+# print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# # Feature Importance
+# importances = gb_clf.feature_importances_
+# feature_names = data.drop(columns=[target_column]).columns
+# feature_importance_df = pd.DataFrame({
+#     "Feature": feature_names,
+#     "Importance": importances
+# }).sort_values(by="Importance", ascending=False)
+
+# y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+# roc_auc = roc_auc_score(y_test, y_pred_proba)
+# print("ROC-AUC Score:", roc_auc)
+
+# # Set maximum rows to display to None (displays all rows)
+# pd.set_option('display.max_rows', None)
+# # print(feature_importance_df)
+# # Optionally, reset the display option after printing
+# pd.reset_option('display.max_rows')
 
 ''''''
 # Implementing grid search
