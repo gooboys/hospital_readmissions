@@ -9,11 +9,12 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import GridSearchCV
+import joblib
 
 # Check if a GPU is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-data = pd.read_csv("train.csv")
+data = pd.read_csv("zero2one_noshapremoved.csv")
 
 target_column = "readmitted"
 
@@ -55,43 +56,47 @@ roc_auc = roc_auc_score(y_test, y_pred_proba)
 print("ROC-AUC Score:", roc_auc)
 
 print(feature_importance_df)
+# Save the trained model
+joblib.dump(rf_clf, "RFmodel.joblib")
 
 ''''''
 
-# # Train the Gradient Boosting classifier
-# gb_clf = GradientBoostingClassifier(
-#     n_estimators=100,      # Number of boosting stages
-#     learning_rate=0.1,     # Step size shrinkage
-#     max_depth=4,           # Maximum depth of each tree
-#     random_state=42        # For reproducibility
-# )
-# gb_clf.fit(X_train, y_train)
+# Train the Gradient Boosting classifier
+gb_clf = GradientBoostingClassifier(
+    n_estimators=100,      # Number of boosting stages
+    learning_rate=0.1,     # Step size shrinkage
+    max_depth=4,           # Maximum depth of each tree
+    random_state=42        # For reproducibility
+)
+gb_clf.fit(X_train, y_train)
 
-# # Make predictions on the test set
-# y_pred = gb_clf.predict(X_test)
-# y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+# Make predictions on the test set
+y_pred = gb_clf.predict(X_test)
+y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
 
-# # Evaluate the model
-# print("Accuracy:", accuracy_score(y_test, y_pred))
-# print("Classification Report:\n", classification_report(y_test, y_pred))
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred))
 
-# # Feature Importance
-# importances = gb_clf.feature_importances_
-# feature_names = data.drop(columns=[target_column]).columns
-# feature_importance_df = pd.DataFrame({
-#     "Feature": feature_names,
-#     "Importance": importances
-# }).sort_values(by="Importance", ascending=False)
+# Feature Importance
+importances = gb_clf.feature_importances_
+feature_names = data.drop(columns=[target_column]).columns
+feature_importance_df = pd.DataFrame({
+    "Feature": feature_names,
+    "Importance": importances
+}).sort_values(by="Importance", ascending=False)
 
-# y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
-# roc_auc = roc_auc_score(y_test, y_pred_proba)
-# print("ROC-AUC Score:", roc_auc)
+y_pred_proba = gb_clf.predict_proba(X_test)[:, 1]
+roc_auc = roc_auc_score(y_test, y_pred_proba)
+print("ROC-AUC Score:", roc_auc)
 
-# # Set maximum rows to display to None (displays all rows)
-# pd.set_option('display.max_rows', None)
-# # print(feature_importance_df)
-# # Optionally, reset the display option after printing
-# pd.reset_option('display.max_rows')
+# Set maximum rows to display to None (displays all rows)
+pd.set_option('display.max_rows', None)
+# print(feature_importance_df)
+# Optionally, reset the display option after printing
+pd.reset_option('display.max_rows')
+# Save the trained model
+joblib.dump(gb_clf, "GBmodel.joblib")
 
 ''''''
 # Implementing grid search
