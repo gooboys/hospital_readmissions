@@ -73,7 +73,7 @@ feature_names = balanced_data.drop(columns=[target_column]).columns.tolist()
 
 # Split into train and test sets
 rando = int(time.time())
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=rando)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=random_state)
 
 # Normalize the features (standard scaling)
 scaler = StandardScaler()

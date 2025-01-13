@@ -4,3 +4,4 @@
 test.py
 everything.ipynb
 *.pth
+*.joblib
