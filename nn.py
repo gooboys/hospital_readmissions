@@ -24,7 +24,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 random_state = 42
 
 # Declares what the classifier is from the imported classes
-BinaryClassifier = DeepestFunClassifier
+BinaryClassifier = BasicClassifier
 
 # Custom Dataset Class for Neural Networks
 class ReadmissionDataset(Dataset):
@@ -305,16 +305,17 @@ def model_predict(features):
 
 ''''''
 # BELOW CODE FOR MONTE CARLO VALIDATION
-num_epochs = 50
-patience = 7
-runs = 50
-monteCarlo(runs, model, criterion, optimizer, num_epochs, patience)
+# num_epochs = 50
+# patience = 7
+# runs = 50
+# monteCarlo(runs, model, criterion, optimizer, num_epochs, patience)
 
 ''''''
 # BELOW CODE BASIC TRAIN AND EVAL
-# num_epochs = 10
-# train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
-# evaluate_model(model, test_loader)
+num_epochs = 10
+train_model(model, train_loader, criterion, optimizer, num_epochs=num_epochs)
+evaluate_model(model, test_loader)
+torch.save(model.state_dict(), "nn_model.pth")
 
 ''''''
 # BELOW CODE TRAIN AND EVAL EARLY STOPPING
